@@ -16,12 +16,13 @@ import (
 
 	"github.com/rancher/norman/clientbase"
 	"github.com/rancher/norman/types"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
 	clusterProjectIDSeparator = ":"
-	passDigits                = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789~!@#$%^&*()_+`-={}|[]\\:\"<>?,./"
-	passDefaultLen            = 16
+	passDigits                = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
+	passDefaultLen            = 20
 )
 
 func GetRandomPass(n int) string {
@@ -31,6 +32,14 @@ func GetRandomPass(n int) string {
 		b[i] = passDigits[rand.Int63()%int64(len(passDigits))]
 	}
 	return string(b)
+}
+
+func HashPasswordString(password string) (string, error) {
+	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return "", fmt.Errorf("[ERROR] problem encrypting password: %v", err)
+	}
+	return string(hash), nil
 }
 
 func NewListOpts(filters map[string]interface{}) *types.ListOpts {
